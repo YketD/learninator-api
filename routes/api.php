@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -17,3 +18,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::post('/set-name', [\App\Http\Controllers\OnboardingController::class, 'setName']);
+Route::post('/set-interests', [\App\Http\Controllers\OnboardingController::class, 'setInterests']);
+Route::get('/interests', [\App\Http\Controllers\InterestController::class, 'index']);
+Route::get('/me', fn () => Auth::user());
