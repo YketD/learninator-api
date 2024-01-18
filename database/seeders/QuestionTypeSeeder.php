@@ -31,7 +31,7 @@ class QuestionTypeSeeder extends Seeder
         ];
 
         foreach ($wordGuessingQuestionTypes as $wordGuessingQuestionType) {
-            \App\Models\QuestionType::query()->create($wordGuessingQuestionType);
+            \App\Models\QuestionType::query()->firstOrCreate($wordGuessingQuestionType);
         }
     }
 }
