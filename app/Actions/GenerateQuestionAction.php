@@ -229,11 +229,16 @@ class GenerateQuestionAction
             $interest = Interest::query()->inRandomOrder()->first();
         }
 
-        $prompt = 'Creëer een Zweedse puzzelwoord voor een interesse in ' . $interest->name . '. 
-        De "question" moet het nederlandse woord zijn, met ' . rand(8, 10) . ' letters, 
-        waarvan er maximaal 4 letters zichtbaar mogen zijn, 
-        en de rest vervangen door _. 
-        de "short_definition" moet een hint zijn van de betekenis van het woord & mag het woord niet bevatten.';
+        $prompt = "Genereer alsjeblieft een woord van 8 tot 10 tekens binnen het interessegebied $interest->name.
+        bedenk zelf een korte definitie of hint voor het woord, maximaal 3 woorden. 
+        Het doel is dat de gebruiker het ontbrekende deel van het woord invult op basis van de gegenereerde hint. 
+        Zorg ervoor dat het woord uitdagend is voor het trainen van vocabulaire binnen het specifieke interessegebied.";
+
+        // $prompt = 'Creëer een Zweedse puzzelwoord voor een interesse in ' . $interest->name . '.
+        // De "question" moet het nederlandse woord zijn, met ' . rand(8, 10) . ' letters,
+        // waarvan er maximaal 4 letters zichtbaar mogen zijn,
+        // en de rest vervangen door _.
+        // de "short_definition" moet een hint zijn van de betekenis van het woord & mag het woord niet bevatten.';
 
         $openai = OpenAI::client(config('openai.api_key'), config('openai.organization'));
 
@@ -242,8 +247,8 @@ class GenerateQuestionAction
             'messages'      => [
                 [
                     'role'    => 'user',
-                    'content' => $prompt
-                ]
+                    'content' => $prompt,
+                ],
             ],
             'functions'     => [
                 [
@@ -251,33 +256,48 @@ class GenerateQuestionAction
                     'parameters' => [
                         'type'       => 'object',
                         'properties' => [
-                            'question'         => ['type' => 'string'],
-                            'short_definition'       => ['type' => 'string'],
-                            'correct_answer'   => ['type' => 'string']
+                            'short_definition' => ['type' => 'string'],
+                            'volledig_woord'   => ['type' => 'string'],
                         ],
-                        'required'   => ['question', 'possible_answer', 'correct_answer', 'short_definition']
-                    ]
-                ]
+                        'required'   => ['volledig_woord', 'short_definition'],
+                    ],
+                ],
             ],
-            'function_call' => ['name' => 'createSwedishPuzzleQuestionObject']
+            'function_call' => ['name' => 'createSwedishPuzzleQuestionObject'],
         ]);
 
         $functionCall = $gptResponse['choices'][0]['message']['function_call'];
         $questionJson = json_decode($functionCall['arguments'], true);
-
+        Log::info($questionJson);
         $question = new Question();
-        $question->prompt = $questionJson['question'];
+        $question->prompt = $this->verbergLetters($questionJson['volledig_woord']);
         $question->question_type_id = 3;
         $question->interest_id = $interest->id;
         $question->short_definition = $questionJson['short_definition'];
         $question->save();
 
-            $question->options()->create([
-                'value'      => $questionJson['correct_answer'],
-                'is_correct' => 1
-            ]);
-
+        $question->options()->create([
+            'value'      => $questionJson['volledig_woord'],
+            'is_correct' => 1,
+        ]);
 
         return $question;
     }
+
+    function verbergLetters($woord) {
+        $lengte = strlen($woord);
+        $verborgenWoord = '';
+
+        for ($i = 0; $i < $lengte; $i++) {
+            // Vervang letters door underscores, behalve spaties
+            if ($woord[$i] !== ' ') {
+                $verborgenWoord .= '_';
+            } else {
+                $verborgenWoord .= ' ';
+            }
+        }
+
+        return $verborgenWoord;
+    }
+
 }

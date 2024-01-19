@@ -23,10 +23,10 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // if (User::query()->get()->count() >= 1) {
-        //     Auth::setUser(User::query()->find(1));
-        // }   else {
-        //     dump("Seeders haven't been run");
-        // }
+        if (User::query()->get()->count() >= 1) {
+            Auth::setUser(User::query()->find(1));
+        }   else {
+            dump("Seeders haven't been run");
+        }
     }
 }
