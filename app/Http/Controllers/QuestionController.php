@@ -15,7 +15,7 @@ class QuestionController extends Controller
     {
         $question = $generateQuestionAction->execute($request->user(), $request->question_type_id, $request->fresh);
 
-        return response()->json($question->load('options'));
+        return response()->json($question->load('options', 'interest'));
     }
 
     public function checkAnswer(CheckAnswerRequest $request)
