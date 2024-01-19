@@ -23,5 +23,5 @@ Route::post('/set-name', [\App\Http\Controllers\OnboardingController::class, 'se
 Route::post('/set-interests', [\App\Http\Controllers\OnboardingController::class, 'setInterests']);
 Route::get('/interests', [\App\Http\Controllers\InterestController::class, 'index']);
 Route::get('/question', [\App\Http\Controllers\QuestionController::class, 'getQuestion']);
-Route::get('/me', fn () => Auth::user());
+Route::get('/me', fn () => Auth::user()->load('interests'));
 
