@@ -10,6 +10,7 @@ use OpenAI;
 
 class GenerateQuestionAction
 {
+
     public function execute(User $user, ?int $question_type_id = null, ?bool $fresh = false, ?int $interest_id = null)
     {
         switch ($question_type_id) {
@@ -64,7 +65,7 @@ class GenerateQuestionAction
         } elseif ($user->interests->count() > 0) {
             $interest = $user->interests->random();
             $prompt = 'Creëer een woordraadvraag voor een interesse in  ' . $interest->name;
-        } else {
+        }   else {
             $interest = Interest::query()->inRandomOrder()->first();
             $prompt = 'Creëer een woordraadvraag voor een interesse in ' . $interest->name;
         }
@@ -72,28 +73,28 @@ class GenerateQuestionAction
         Interest::query()->where('id', $interest_id)->first();
 
         $gptResponse = $openai->chat()->create([
-            'model'         => 'gpt-3.5-turbo-1106',
-            'messages'      => [
+            'model' => 'gpt-3.5-turbo-1106',
+            'messages' => [
                 [
-                    'role'    => 'user',
-                    'content' => $prompt,
-                ],
+                    'role' => 'user',
+                    'content' => $prompt
+                ]
             ],
-            'functions'     => [
+            'functions' => [
                 [
-                    'name'       => 'createWordQuestionObject',
+                    'name' => 'createWordQuestionObject',
                     'parameters' => [
-                        'type'       => 'object',
+                        'type' => 'object',
                         'properties' => [
-                            'question'         => ['type' => 'string'],
+                            'question' => ['type' => 'string'],
                             'possible_answers' => ['type' => 'array', 'items' => ['type' => 'string']],
-                            'correct_answer'   => ['type' => 'integer'],
+                            'correct_answer' => ['type' => 'integer']
                         ],
-                        'required'   => ['question', 'possible_answers', 'correct_answer'],
-                    ],
-                ],
+                        'required' => ['question', 'possible_answers', 'correct_answer']
+                    ]
+                ]
             ],
-            'function_call' => ['name' => 'createWordQuestionObject'],
+            'function_call' => ['name' => 'createWordQuestionObject']
         ]);
 
         $functionCall = $gptResponse['choices'][0]['message']['function_call'];
@@ -107,15 +108,15 @@ class GenerateQuestionAction
 
         foreach ($questionJson['possible_answers'] as $key => $possible_answer) {
             $question->options()->create([
-                'value'      => $possible_answer,
-                'is_correct' => $key === $questionJson['correct_answer'],
+                'value' => $possible_answer,
+                'is_correct' => $key === $questionJson['correct_answer']
             ]);
         }
 
         return $question;
     }
 
-    private function GenerateDefinitionGuesserQuestion(User $user, int $question_type_id, ?bool $fresh, ?int $interest_id = null)
+    private function GenerateDefinitionGuesserQuestion(User $user, int $question_type_id, ?bool $fresh, ?int $interest_id=null)
     {
         if (!$fresh) {
             $question = Question::query()
@@ -156,8 +157,8 @@ class GenerateQuestionAction
             'messages'      => [
                 [
                     'role'    => 'user',
-                    'content' => $prompt,
-                ],
+                    'content' => $prompt
+                ]
             ],
             'functions'     => [
                 [
@@ -167,13 +168,13 @@ class GenerateQuestionAction
                         'properties' => [
                             'question'         => ['type' => 'string'],
                             'possible_answers' => ['type' => 'array', 'items' => ['type' => 'string']],
-                            'correct_answer'   => ['type' => 'integer'],
+                            'correct_answer'   => ['type' => 'integer']
                         ],
-                        'required'   => ['question', 'possible_answers', 'correct_answer'],
-                    ],
-                ],
+                        'required'   => ['question', 'possible_answers', 'correct_answer']
+                    ]
+                ]
             ],
-            'function_call' => ['name' => 'createDefinitionQuestionObject'],
+            'function_call' => ['name' => 'createDefinitionQuestionObject']
         ]);
 
         $functionCall = $gptResponse['choices'][0]['message']['function_call'];
@@ -188,7 +189,7 @@ class GenerateQuestionAction
         foreach ($questionJson['possible_answers'] as $key => $possible_answer) {
             $question->options()->create([
                 'value'      => $possible_answer,
-                'is_correct' => $key === $questionJson['correct_answer'],
+                'is_correct' => $key === $questionJson['correct_answer']
             ]);
         }
 
@@ -228,17 +229,11 @@ class GenerateQuestionAction
             $interest = Interest::query()->inRandomOrder()->first();
         }
 
-        $prompt = "Genereer alsjeblieft een woord van 8 tot 10 tekens, 
-        waarbij slechts enkele letters bekend zijn. 
-        Geef de bekende letters aan met underscores zoals ' _ _ a _ _ _ _ _ _ ' en bedenk zelf een korte definitie of hint voor het woord binnen het interessegebied $interest->name. 
-        Het doel is dat de gebruiker het ontbrekende deel van het woord invult op basis van de gegenereerde hint. 
-        Zorg ervoor dat het woord uitdagend is voor het trainen van vocabulaire binnen het specifieke interessegebied.";
-
-        // $prompt = 'Creëer een Zweedse puzzelwoord voor een interesse in ' . $interest->name . '.
-        // De "question" moet het nederlandse woord zijn, met ' . rand(8, 10) . ' letters,
-        // waarvan er maximaal 4 letters zichtbaar mogen zijn,
-        // en de rest vervangen door _.
-        // de "short_definition" moet een hint zijn van de betekenis van het woord & mag het woord niet bevatten.';
+        $prompt = 'Creëer een Zweedse puzzelwoord voor een interesse in ' . $interest->name . '. 
+        De "question" moet het nederlandse woord zijn, met ' . rand(8, 10) . ' letters, 
+        waarvan er maximaal 4 letters zichtbaar mogen zijn, 
+        en de rest vervangen door _. 
+        de "short_definition" moet een hint zijn van de betekenis van het woord & mag het woord niet bevatten.';
 
         $openai = OpenAI::client(config('openai.api_key'), config('openai.organization'));
 
@@ -247,8 +242,8 @@ class GenerateQuestionAction
             'messages'      => [
                 [
                     'role'    => 'user',
-                    'content' => $prompt,
-                ],
+                    'content' => $prompt
+                ]
             ],
             'functions'     => [
                 [
@@ -256,44 +251,33 @@ class GenerateQuestionAction
                     'parameters' => [
                         'type'       => 'object',
                         'properties' => [
-                            'short_definition' => ['type' => 'string'],
-                            'volledig_woord'   => ['type' => 'string'],
+                            'question'         => ['type' => 'string'],
+                            'short_definition'       => ['type' => 'string'],
+                            'correct_answer'   => ['type' => 'string']
                         ],
-                        'required'   => ['woord_met_verborgen_letters', 'possible_answer', 'volledig_woord', 'short_definition'],
-                    ],
-                ],
+                        'required'   => ['question', 'possible_answer', 'correct_answer', 'short_definition']
+                    ]
+                ]
             ],
-            'function_call' => ['name' => 'createSwedishPuzzleQuestionObject'],
+            'function_call' => ['name' => 'createSwedishPuzzleQuestionObject']
         ]);
 
         $functionCall = $gptResponse['choices'][0]['message']['function_call'];
         $questionJson = json_decode($functionCall['arguments'], true);
-        Log::info($questionJson);
+
         $question = new Question();
-        $question->prompt = $this->generateSwedishPrompt($questionJson['volledig_woord']);
+        $question->prompt = $questionJson['question'];
         $question->question_type_id = 3;
         $question->interest_id = $interest->id;
         $question->short_definition = $questionJson['short_definition'];
         $question->save();
 
-        $question->options()->create([
-            'value'      => $questionJson['volledig_woord'],
-            'is_correct' => 1,
-        ]);
+            $question->options()->create([
+                'value'      => $questionJson['correct_answer'],
+                'is_correct' => 1
+            ]);
+
 
         return $question;
-    }
-
-    private function generateSwedishPrompt(string $word)
-    {
-        $lengte = strlen($word);
-        $start = floor($lengte / 2);
-        $einde = ceil($lengte * 3 / 4);
-
-        for ($i = $start; $i < $einde; $i++) {
-            $woord[$i] = '_';
-        }
-
-        return $woord;
     }
 }
