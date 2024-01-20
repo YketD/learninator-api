@@ -28,4 +28,9 @@ class Question extends Model
     {
         return $this->hasMany(Option::class);
     }
+
+    public function optionsToString()
+    {
+        return implode(', ', $this->options()->pluck('value')->toArray());
+    }
 }

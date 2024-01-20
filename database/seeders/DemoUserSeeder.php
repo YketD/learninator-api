@@ -13,11 +13,12 @@ class DemoUserSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::query()->firstOrCreate([
+        User::query()->updateOrCreate([
             'email' => 'info@code14.nl',
         ], [
             'name' => 'Demo User',
             'password' => bcrypt('password'),
+            'is_admin' => true,
         ]);
     }
 }

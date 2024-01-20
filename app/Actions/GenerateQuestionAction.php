@@ -62,7 +62,7 @@ class GenerateQuestionAction
 
         if ($interest_id) {
             $interest = Interest::query()->where('id', $interest_id)->first();
-            $prompt = 'Creëer een woordraadvraag voor een interesse in ' . $interest->name . ', met als mogelijke antwoorden 4 woorden';
+            $prompt = 'Creëer een woordraadvraag voor een interesse in ' . $interest->name . ', met als mogelijke antwoorden 4 woorden, waarvan 1 correct is, en 3 te maken hebben met het woord zijn';
         } elseif ($user->interests->count() > 0) {
             $interest = $user->interests->random();
             $prompt = 'Creëer een woordraadvraag voor een interesse in  ' . $interest->name . ', met als mogelijke antwoorden 4 woorden';
@@ -230,7 +230,7 @@ class GenerateQuestionAction
             $interest = Interest::query()->inRandomOrder()->first();
         }
 
-        $prompt = "Genereer een uitdagend $interest->name -woord (7-11 tekens) met een korte hint (max 2 woorden) voor de gebruiker om te raden,
+        $prompt = "Genereer 10 uitdagende $interest->name -woord (7-11 tekens) met een korte hint (max 2 woorden) voor de gebruiker om te raden,
          zonder het volledige woord te onthullen.";
 
         $openai = OpenAI::client(config('openai.api_key'), config('openai.organization'));
@@ -249,7 +249,15 @@ class GenerateQuestionAction
                     'parameters' => [
                         'type'       => 'object',
                         'properties' => [
-                            'hint' => ['type' => 'string'],
+                            'hint_1' => ['type' => 'string'],
+                            'hint_2' => ['type' => 'string'],
+                            'hint_3' => ['type' => 'string'],
+                            'hint_4' => ['type' => 'string'],
+                            'hint_5' => ['type' => 'string'],
+                            'hint_6' => ['type' => 'string'],
+                            'hint_7' => ['type' => 'string'],
+                            'hint_8' => ['type' => 'string'],
+                            'hint_9' => ['type' => 'string'],
                             'volledig_woord'   => ['type' => 'string'],
                         ],
                         'required'   => ['volledig_woord', 'hint'],
