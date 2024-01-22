@@ -25,4 +25,5 @@ Route::get('/interests', [\App\Http\Controllers\InterestController::class, 'inde
 Route::get('/question', [\App\Http\Controllers\QuestionController::class, 'getQuestion']);
 Route::post('/answer', [\App\Http\Controllers\QuestionController::class, 'checkAnswer']);
 Route::get('/me', fn () => Auth::user()->load('interests'));
+Route::post('/guest-login', [\App\Http\Controllers\AuthController::class, 'guestLogin']);
 
