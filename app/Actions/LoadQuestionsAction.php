@@ -14,12 +14,15 @@ class LoadQuestionsAction
     public function execute(QuestionRequest $request, GameSession $gameSession = null)
     {
         if ($gameSession && !$gameSession->is_complete && $gameSession->questions()->count() > 0) {
-            return $gameSession->questions()
-                ->leftJoin('answers', function ($join) use ($request) {
-                    $join->on('questions.id', '=', 'answers.question_id')
-                        ->where('answers.user_id', '=', $request->user()->id);
-                })
-                ->get();
+            return $gameSession
+                ->load([
+                    'questions',
+                    'questions.options',
+                    'questions.interest',
+                    'questions.answers' => function ($query) {
+                        $query->where('user_id', '=', 1);
+                    }
+                ]);
         }
 
         $questionsQuery = Question::query()
@@ -36,8 +39,8 @@ class LoadQuestionsAction
                                 $query->where('is_correct', false);
                             });
                     })
-                    ->with(['options', 'interest']);
-            });
+                   ;
+            }) ->with(['options', 'interest']);
 
         $questions = $questionsQuery->paginate($request->input('per_page', 10), ['*'], 'page', $request->input('page', 1));
 
@@ -52,6 +55,15 @@ class LoadQuestionsAction
         if ($gameSession) {
             $gameSession->question_count = $questionCollection->count();
             $gameSession->save();
+
+            return $gameSession->load([
+                'questions',
+                'questions.options',
+                'questions.interest',
+                'questions.answers' => function ($query) {
+                    $query->where('user_id', '=', 1);
+                }
+            ]);
         }
 
         return $questions;

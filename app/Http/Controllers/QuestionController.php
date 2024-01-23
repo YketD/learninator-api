@@ -21,7 +21,7 @@ class QuestionController extends Controller
 
         $questions = $loadQuestionsAction->execute($request, $gameSession ?? null);
 
-        return response()->json($gameSession->load('questions', 'questions.options', 'questions.interest', 'questions.answers'));
+        return response()->json($questions);
     }
 
     public function getQuestion(QuestionRequest $request, GenerateQuestionAction $generateQuestionAction)
