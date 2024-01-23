@@ -11,7 +11,7 @@ use OpenAI;
 class GenerateQuestionAction
 {
 
-    public function execute(User $user, ?int $question_type_id = null, ?bool $fresh = false, ?int $interest_id = null)
+    public function execute(User $user, ?int $question_type_id = null, ?int $interest_id = null, ?bool $fresh = false)
     {
         if (!$question_type_id) {
             $question_type_id = random_int(1, 3);
@@ -19,45 +19,21 @@ class GenerateQuestionAction
 
         switch ($question_type_id) {
             case 2:
-                $question = $this->GenerateDefinitionGuesserQuestion($user, 2, $fresh, $interest_id);
+                $question = $this->GenerateDefinitionGuesserQuestion($user, 2, $interest_id);
                 break;
             case 3:
-                $question = $this->generateSwedishPuzzleQuestion($user, 3, $fresh, $interest_id);
+                $question = $this->generateSwedishPuzzleQuestion($user, 3, $interest_id);
                 break;
             default:
-                $question = $this->generateWordGuesserQuestion($user, 1, $fresh, $interest_id);
+                $question = $this->generateWordGuesserQuestion($user, 1, $interest_id);
                 break;
         }
 
         return $question;
     }
 
-    private function generateWordGuesserQuestion(User $user, int $question_type_id, ?bool $fresh = false, ?int $interest_id = null)
+    private function generateWordGuesserQuestion(User $user, int $question_type_id, ?int $interest_id = null)
     {
-        if (!$fresh) {
-            $question = Question::query()
-                ->select('questions.*')
-                ->leftJoin('answers', 'questions.id', '=', 'answers.question_id')
-                ->leftJoin('options', 'answers.option_id', '=', 'options.id')
-                ->where('questions.question_type_id', $question_type_id)
-                ->where('questions.interest_id', $interest_id)
-                ->inRandomOrder()
-                ->where(function ($query) use ($user) {
-                    $query->doesntHave('answers', 'or', function ($query) use ($user) {
-                        $query->where('user_id', $user->id)
-                            ->where(function ($query) {
-                                $query->whereNull('options.is_correct')
-                                    ->orWhere('options.is_correct', '=', 0);
-                            });
-                    });
-                })
-                ->first();
-
-            if ($question) {
-                return $question;
-            }
-        }
-
         $openai = OpenAI::client(config('openai.api_key'), config('openai.organization'));
 
         if ($interest_id) {
@@ -117,7 +93,7 @@ class GenerateQuestionAction
         return $question;
     }
 
-    private function GenerateDefinitionGuesserQuestion(User $user, int $question_type_id, ?bool $fresh, ?int $interest_id=null)
+    private function GenerateDefinitionGuesserQuestion(User $user, int $question_type_id, ?int $interest_id=null)
     {
         if (!$fresh) {
             $question = Question::query()
@@ -197,7 +173,7 @@ class GenerateQuestionAction
         return $question;
     }
 
-    private function generateSwedishPuzzleQuestion(User $user, int $int, ?bool $fresh, ?int $interest_id)
+    private function generateSwedishPuzzleQuestion(User $user, int $int, ?int $interest_id)
     {
         if (!$fresh) {
             $question = Question::query()
