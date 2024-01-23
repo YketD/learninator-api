@@ -7,7 +7,6 @@ use App\Models\Question;
 
 class LoadQuestionsAction
 {
-
     public function execute(QuestionRequest $request)
     {
         return Question::query()
@@ -21,7 +20,10 @@ class LoadQuestionsAction
                             $query->whereHas('options.is_correct', false);
                         });
                 });
-            })->with(['options', 'interest'])
+            })->when($request->input('interest_id'), function ($query, $interest_id) {
+                $query->where('interest_id', $interest_id);
+            })
+            ->with(['options', 'interest'])
             ->paginate($request->input('per_page', 10), ['*'], 'page', $request->input('page', 1));
     }
 }
