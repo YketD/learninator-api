@@ -24,6 +24,8 @@ Route::post('/set-interests', [\App\Http\Controllers\OnboardingController::class
 Route::get('/interests', [\App\Http\Controllers\InterestController::class, 'index']);
 Route::get('/question', [\App\Http\Controllers\QuestionController::class, 'getQuestion']);
 Route::get('/questions', [\App\Http\Controllers\QuestionController::class, 'index']);
+Route::get('/game-sessions', [\App\Http\Controllers\GameSessionController::class, 'index']);
+Route::get('/game-sessions/{gameSession:game_session_id}', [\App\Http\Controllers\GameSessionController::class, 'show']);
 Route::post('/answer', [\App\Http\Controllers\QuestionController::class, 'checkAnswer']);
 Route::get('/me', fn () => Auth::user()->load('interests'));
 Route::post('/guest-login', [\App\Http\Controllers\AuthController::class, 'guestLogin']);

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\GenerateQuestionAction;
 use App\Actions\LoadQuestionsAction;
+use App\Actions\StartGameSessionAction;
 use App\Http\Requests\CheckAnswerRequest;
 use App\Http\Requests\QuestionRequest;
 use App\Models\Answer;
@@ -12,11 +13,15 @@ use Illuminate\Http\Request;
 
 class QuestionController extends Controller
 {
-    public function index(QuestionRequest $request, LoadQuestionsAction $loadQuestionsAction)
+    public function index(QuestionRequest $request, LoadQuestionsAction $loadQuestionsAction, StartGameSessionAction $startGameSessionAction)
     {
-        $questions = $loadQuestionsAction->execute($request);
+        if ($request->input('game_session_id')) {
+            $gameSession = $startGameSessionAction->execute($request);
+        }
 
-        return response()->json($questions);
+        $questions = $loadQuestionsAction->execute($request, $gameSession ?? null);
+
+        return response()->json($gameSession->load('questions', 'questions.options', 'questions.interest', 'questions.answers'));
     }
 
     public function getQuestion(QuestionRequest $request, GenerateQuestionAction $generateQuestionAction)
