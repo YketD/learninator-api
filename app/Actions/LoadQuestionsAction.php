@@ -49,8 +49,10 @@ class LoadQuestionsAction
             }
         });
 
-        $gameSession->question_count = $questionCollection->count();
-        $gameSession->save();
+        if ($gameSession) {
+            $gameSession->question_count = $questionCollection->count();
+            $gameSession->save();
+        }
 
         return $questions;
     }
